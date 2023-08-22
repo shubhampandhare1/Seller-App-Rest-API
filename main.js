@@ -1,6 +1,7 @@
-const url1 = 'https://crudcrud.com/api/56feb0a61c8e48bea0d8f16b92107cad' + '/' + 'items';
+const url1 = 'https://crudcrud.com/api/9475d2541e1b45f6b0131671f9fc2a85' + '/' + 'items';
 
-function addItem(event) {
+let updateToId = null;
+async function addItem(event) {
 
     event.preventDefault();
 
@@ -15,14 +16,24 @@ function addItem(event) {
         price,
         quantity
     }
-
-    axios.post(url1, item)
-        .then((response) => {
-            showItemOnHomepage(item)
-        })
-        .catch((err) => {
-            console.log('Error Occured While Showing  Data', err)
-        })
+    if (updateToId === null) {
+        try {
+            await axios.post(url1, item)
+            showItemOnHomepage(item);
+        } catch {
+            console.log('Error Occured While Posting Data to API')
+        }
+    }
+    else {
+        let url2 = url1 + '/' + updateToId;
+        try {
+            await axios.put(url2,item);
+            showItemOnHomepage(item);
+        }
+        catch{
+            console.log('Error Occured While Editing Data to API')
+        }
+    }
 }
 
 function showItemOnHomepage(item) {
@@ -41,77 +52,33 @@ function showItemOnHomepage(item) {
     let buy3 = document.createElement('button');
     buy3.innerText = 'Buy 3';
 
+    let editBtn = document.createElement('button');
+    editBtn.innerText = 'Edit';
 
-    buy1.onclick = () => {
+    let deleteBtn = document.createElement('button');
+    deleteBtn.innerText = 'Delete';
 
-        if (item.quantity > 0) {
+    buy1.onclick = async () => {
 
-            item.quantity -= 1;
+        if (item.quantity >= 1) {
 
-            let itemID = item._id;
-            let updatedUrl = url1 + '/' + itemID;
-
-            parentEle.removeChild(childEle);
-            showItemOnHomepage(item);
-
-            axios.put(updatedUrl, item)
-                .then((response) => {
-                    console.log(response)
-                })
-                .catch((err) => {
-                    console.log('Error')
-                })
-        }
-        else {
-            alert("Quantity Out Of Stock, Need to be Ordered")
-        }
-
-    }
-
-    buy2.onclick = () => {
-
-        if (item.quantity > 0) {
-
-            item.quantity -= 2;
-
-            let updatedUrl = url1 + '/' + item._id;
-
-            parentEle.removeChild(childEle);
-            showItemOnHomepage(item);
-
-            axios.put(updatedUrl, item)
-                .then((response) => {
-                    console.log('Completed')
-                })
-                .catch((err) => {
-                    console.log('Error')
-                })
-        }
-        else {
-            alert("Quantity Out Of Stock, Need to be Ordered")
-        }
-
-    }
-
-    buy3.onclick = () => {
-
-        if (item.quantity > 0) {
-
-            item.quantity -= 3;
+            let updatedQty = item.quantity - 1;
 
             let itemID = item._id;
             let updatedUrl = url1 + '/' + itemID;
-
-            parentEle.removeChild(childEle);
-            showItemOnHomepage(item);
-
-            axios.put(updatedUrl, item)
-                .then((response) => {
-                    console.log('Completed')
-                })
-                .catch((err) => {
-                    console.log('Error')
-                })
+            item = {
+                candy: item.candy,
+                description: item.description,
+                price: item.price,
+                quantity: updatedQty
+            }
+            try {
+                await axios.put(updatedUrl, item)
+                showItemOnHomepage(item);
+                location.reload();
+            } catch {
+                console.log('Error Occured While Updating');
+            }
         }
         else {
             alert("Quantity Out Of Stock, Need to be Ordered")
@@ -119,20 +86,96 @@ function showItemOnHomepage(item) {
 
     }
 
+    buy2.onclick = async () => {
+
+        if (item.quantity >= 2) {
+
+            let updatedQty = item.quantity - 2;
+
+            let itemID = item._id;
+            let updatedUrl = url1 + '/' + itemID;
+            item = {
+                candy: item.candy,
+                description: item.description,
+                price: item.price,
+                quantity: updatedQty
+            }
+            try {
+                await axios.put(updatedUrl, item)
+                showItemOnHomepage(item);
+                location.reload();
+            } catch {
+                console.log('Error Occured While Updating');
+            }
+        }
+        else {
+            alert("Quantity Out Of Stock, Need to be Ordered")
+        }
+
+    }
+
+    buy3.onclick = async () => {
+
+        if (item.quantity >= 3) {
+
+            let updatedQty = item.quantity - 3;
+
+            let itemID = item._id;
+            let updatedUrl = url1 + '/' + itemID;
+            item = {
+                candy: item.candy,
+                description: item.description,
+                price: item.price,
+                quantity: updatedQty
+            }
+            try {
+                await axios.put(updatedUrl, item)
+                showItemOnHomepage(item);
+                location.reload();
+            } catch {
+                console.log('Error Occured While Updating');
+            }
+        }
+        else {
+            alert("Quantity Out Of Stock, Need to be Ordered")
+        }
+
+    }
+
+    editBtn.onclick = async () => {
+        document.getElementById('name').value = item.candy;
+        document.getElementById('description').value = item.description;
+        document.getElementById('price').value = item.price;
+        document.getElementById('quantity').value = item.quantity;
+        updateToId = item._id;
+        parentEle.removeChild(childEle);
+    }
+
+    deleteBtn.onclick = async () => {
+        let deleteId = item._id;
+        let url3 = url1 + '/' + deleteId;
+        await axios.delete(url3);
+        parentEle.removeChild(childEle);
+
+    }
     parentEle.appendChild(childEle);
-    childEle.appendChild(buy1)
-    childEle.appendChild(buy2)
-    childEle.appendChild(buy3)
+    childEle.appendChild(buy1);
+    childEle.appendChild(buy2);
+    childEle.appendChild(buy3);
+    childEle.appendChild(editBtn);
+    childEle.appendChild(deleteBtn);
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-    axios.get(url1)
-        .then((response) => {
-            response.data.forEach(ele => {
-                showItemOnHomepage(ele)
-            })
+async function reloadWeb() {
+    try {
+        let response = await axios.get(url1);
+        let arr = response.data;
+
+        arr.forEach(async ele => {
+            await showItemOnHomepage(ele)
         })
-        .catch((err) => {
-            console.log(err);
-        })
-})
+    } catch {
+        console.log(err);
+    }
+}
+window.addEventListener('DOMContentLoaded', reloadWeb)
